@@ -13,7 +13,31 @@ export function useProjects() {
 
   const fetchProjects = async () => {
     if (!user?.id) {
-      setProjects([])
+      // Provide dummy projects for testing when no user
+      setProjects([
+        {
+          id: 'dummy-1',
+          name: 'サンプルプロジェクト',
+          description: 'デモ用プロジェクト',
+          color: '#3B82F6',
+          user_id: 'test-user',
+          team_id: undefined,
+          is_archived: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        {
+          id: 'dummy-2',
+          name: 'ウェブサイト開発',
+          description: 'フロントエンド開発',
+          color: '#10B981',
+          user_id: 'test-user',
+          team_id: undefined,
+          is_archived: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+      ])
       setLoading(false)
       return
     }

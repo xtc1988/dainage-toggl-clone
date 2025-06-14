@@ -41,7 +41,11 @@ export function useTimer() {
   }, [user?.id, dispatch])
 
   const startTimer = async (projectId: string, taskId?: string, description?: string) => {
-    if (!user?.id) return
+    if (!user?.id) {
+      // Test mode: simulate timer start without user
+      console.log('Test mode: Starting timer for project', projectId)
+      return
+    }
     
     await dispatch(
       startTimerAsync({

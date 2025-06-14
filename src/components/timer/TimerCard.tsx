@@ -1,14 +1,23 @@
 'use client'
 
 import { useState } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 import { useTimer } from '@/hooks/useTimer'
+import { useTestTimer } from '@/hooks/useTestTimer'
 import { useProjects } from '@/hooks/useProjects'
 import { Play, Pause, Square, ChevronDown } from 'lucide-react'
 
 export default function TimerCard() {
+  const { user } = useAuth()
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [description, setDescription] = useState('')
   const [showProjectDropdown, setShowProjectDropdown] = useState(false)
+  
+  // Use test timer when no user is logged in
+  const realTimer = useTimer()
+  const testTimer = useTestTimer()
+  
+  const timer = user ? realTimer : testTimer
   
   const { 
     isRunning, 
@@ -17,7 +26,7 @@ export default function TimerCard() {
     startTimer, 
     stopTimer,
     loading 
-  } = useTimer()
+  } = timer
   
   const { projects } = useProjects()
 
