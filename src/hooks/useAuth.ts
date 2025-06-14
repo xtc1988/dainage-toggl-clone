@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSupabase } from '@/lib/supabase/provider'
-import type { User } from '@supabase/auth-helpers-nextjs'
+import type { User } from '@supabase/supabase-js'
 
 export function useAuth() {
   const { supabase, user: supabaseUser, loading: supabaseLoading } = useSupabase()
@@ -15,10 +15,15 @@ export function useAuth() {
   }, [supabaseUser, supabaseLoading])
 
   const signInWithGoogle = async () => {
+    // 認証成功後はホームページ（ダッシュボード）にリダイレクト
+    const redirectUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_SITE_URL || ''
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: redirectUrl,
       },
     })
     

@@ -1,13 +1,12 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
-import type { SupabaseClient, User } from '@supabase/auth-helpers-nextjs'
-import type { Database } from './types'
+import { supabase } from './client'
+import type { User } from '@supabase/supabase-js'
 
 type SupabaseContext = {
-  supabase: SupabaseClient<Database>
+  supabase: typeof supabase
   user: User | null
   loading: boolean
 }
@@ -18,7 +17,6 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClientComponentClient<Database>()
 
   useEffect(() => {
     const {
@@ -42,6 +40,9 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
         if (error) {
           console.error('Error updating user profile:', error)
         }
+        
+        // Redirect to home page (which shows Dashboard for authenticated users)
+        router.push('/')
       }
 
       if (event === 'SIGNED_OUT') {
