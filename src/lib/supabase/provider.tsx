@@ -56,10 +56,18 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     })
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    const getInitialSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        setUser(session?.user ?? null)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error getting initial session:', error)
+        setLoading(false)
+      }
+    }
+    
+    getInitialSession()
 
     return () => subscription.unsubscribe()
   }, [supabase, router])
