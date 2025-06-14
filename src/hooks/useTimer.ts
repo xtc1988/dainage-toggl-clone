@@ -36,7 +36,7 @@ export function useTimer() {
   // Fetch active timer on mount
   useEffect(() => {
     if (user?.id) {
-      dispatch(fetchActiveTimer(user.id))
+      dispatch(fetchActiveTimer(user.id) as any)
     }
   }, [user?.id, dispatch])
 
@@ -49,14 +49,14 @@ export function useTimer() {
         projectId,
         taskId,
         description,
-      })
+      }) as any
     )
   }
 
   const stopTimer = async () => {
     if (!currentEntry?.id) return
     
-    await dispatch(stopTimerAsync(currentEntry.id))
+    await dispatch(stopTimerAsync(currentEntry.id) as any)
   }
 
   const formatTime = (seconds: number): string => {
