@@ -4,8 +4,18 @@ import type { Database } from './types'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
+// Singleton pattern to avoid multiple client instances
+let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null
+
+const createSupabaseClient = () => {
+  if (!supabaseInstance) {
+    supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey)
+  }
+  return supabaseInstance
+}
+
 // Client-side Supabase client for React components
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+export const supabase = createSupabaseClient()
 
 // Server-side Supabase client with service role key
 export const supabaseAdmin = createClient<Database>(
