@@ -26,19 +26,23 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
 
       if (event === 'SIGNED_IN' && session?.user) {
-        // Create or update user profile when signing in
-        const { error } = await supabase
-          .from('users')
-          .upsert({
-            id: session.user.id,
-            email: session.user.email!,
-            name: session.user.user_metadata?.name || session.user.email!,
-            avatar_url: session.user.user_metadata?.avatar_url,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          })
-          
-        if (error) {
-          console.error('Error updating user profile:', error)
+        // Try to create or update user profile, but don't fail if table doesn't exist
+        try {
+          const { error } = await supabase
+            .from('users')
+            .upsert({
+              id: session.user.id,
+              email: session.user.email!,
+              name: session.user.user_metadata?.name || session.user.email!,
+              avatar_url: session.user.user_metadata?.avatar_url,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            })
+            
+          if (error) {
+            console.warn('Could not update user profile (table may not exist):', error)
+          }
+        } catch (error) {
+          console.warn('User table may not exist yet:', error)
         }
         
         // Redirect to home page (which shows Dashboard for authenticated users)
