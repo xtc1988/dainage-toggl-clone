@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import Dashboard from '@/components/Dashboard/Dashboard'
@@ -8,6 +8,7 @@ import Dashboard from '@/components/Dashboard/Dashboard'
 export default function Home() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [testMode, setTestMode] = useState(false)
 
   // Debug logging
   console.log('Auth state:', { 
@@ -40,12 +41,19 @@ export default function Home() {
     )
   }
 
-  if (user) {
-    console.log('User logged in, showing dashboard')
+  if (user || testMode) {
+    console.log(testMode ? 'Test mode, showing dashboard' : 'User logged in, showing dashboard')
     return <Dashboard />
   }
 
   console.log('No user, showing landing page')
+
+  // Temporary: Add a test button to show dashboard without authentication
+  const showTestDashboard = () => {
+    console.log('Showing test dashboard')
+    // Force show dashboard for testing
+    return <Dashboard />
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -62,12 +70,23 @@ export default function Home() {
             次世代の時間追跡システム
           </p>
           
-          <div className="flex justify-center mb-12">
+          <div className="flex justify-center mb-12 gap-4">
             <button
               onClick={() => router.push('/auth')}
               className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-lg"
             >
               Google でログイン
+            </button>
+            
+            {/* Temporary test button */}
+            <button
+              onClick={() => {
+                // Create a fake user for testing
+                setTestMode(true)
+              }}
+              className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors shadow-lg"
+            >
+              テスト用ダッシュボード
             </button>
           </div>
 
