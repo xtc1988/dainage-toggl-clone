@@ -10,7 +10,26 @@ export default function Home() {
   const router = useRouter()
 
   // Debug logging
-  console.log('Auth state:', { user, loading })
+  console.log('Auth state:', { 
+    user: user ? { email: user.email, id: user.id } : null, 
+    loading 
+  })
+
+  // Additional debug - check if session exists in localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const keys = Object.keys(localStorage).filter(key => 
+        key.includes('supabase') || key.includes('auth')
+      )
+      console.log('Auth-related localStorage keys:', keys)
+      
+      if (keys.length > 0) {
+        keys.forEach(key => {
+          console.log(`${key}:`, localStorage.getItem(key))
+        })
+      }
+    }
+  }, [])
 
   if (loading) {
     return (
