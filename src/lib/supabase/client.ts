@@ -4,26 +4,14 @@ import type { Database } from './types'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-// Ensure we only create one client instance globally
-declare global {
-  var __supabase: ReturnType<typeof createClient<Database>> | undefined
-}
-
-const createSupabaseClient = () => {
-  if (typeof window === 'undefined') {
-    // Server-side: always create new instance
-    return createClient<Database>(supabaseUrl, supabaseAnonKey)
+// Create a single client instance
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
   }
-
-  // Client-side: use global singleton
-  if (!global.__supabase) {
-    global.__supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
-  }
-  return global.__supabase
-}
-
-// Client-side Supabase client for React components
-export const supabase = createSupabaseClient()
+})
 
 // Server-side Supabase client with service role key (only for server operations)
 export const supabaseAdmin = createClient<Database>(
