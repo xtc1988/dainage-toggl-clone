@@ -3,48 +3,22 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useTimer } from '@/hooks/useTimer'
+import { useRouter } from 'next/navigation'
 import TimerCard from '@/components/Timer/TimerCard'
+import TimeEntryList from '@/components/TimeEntries/TimeEntryList'
+import NavBar from '@/components/Navigation/NavBar'
 import { Clock, Calendar, BarChart3, Users } from 'lucide-react'
 
 export default function Dashboard() {
   const { user } = useAuth()
   const { formattedTime, isRunning } = useTimer()
+  const router = useRouter()
   const [todayTotal, setTodayTotal] = useState('0:00')
   const [weekTotal, setWeekTotal] = useState('0:00')
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                DAINAGE
-              </h1>
-              <span className="ml-3 px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
-                Beta
-              </span>
-            </div>
-            
-            {user && (
-              <div className="flex items-center space-x-4">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  こんにちは、{user.user_metadata?.full_name || user.email}
-                </div>
-                <img
-                  src={user.user_metadata?.avatar_url || '/default-avatar.png'}
-                  alt="Profile"
-                  className="h-8 w-8 rounded-full"
-                  onError={(e) => {
-                    e.currentTarget.src = '/default-avatar.png'
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+      <NavBar />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -58,18 +32,9 @@ export default function Dashboard() {
               <TimerCard />
             </div>
 
-            {/* Recent Entries */}
+            {/* Time Entries */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                最近のエントリ
-              </h2>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-                <div className="p-6">
-                  <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                    まだエントリがありません。タイマーを開始して時間の記録を始めましょう。
-                  </div>
-                </div>
-              </div>
+              <TimeEntryList />
             </div>
           </div>
 
@@ -130,11 +95,17 @@ export default function Dashboard() {
                   クイックアクション
                 </h3>
                 <div className="space-y-2">
-                  <button className="w-full flex items-center justify-start px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                  <button 
+                    onClick={() => router.push('/reports')}
+                    className="w-full flex items-center justify-start px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
                     <BarChart3 className="h-4 w-4 mr-3" />
                     レポートを見る
                   </button>
-                  <button className="w-full flex items-center justify-start px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                  <button 
+                    onClick={() => router.push('/projects')}
+                    className="w-full flex items-center justify-start px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
                     <Users className="h-4 w-4 mr-3" />
                     プロジェクト管理
                   </button>

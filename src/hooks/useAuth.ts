@@ -1,24 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useSupabase } from '@/lib/supabase/provider'
-import type { User } from '@supabase/supabase-js'
 
-export function useAuth() {
-  const { supabase, user: supabaseUser, loading: supabaseLoading } = useSupabase()
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+export const useAuth = () => {
+  const { supabase, user, loading } = useSupabase()
 
-  useEffect(() => {
-    setUser(supabaseUser)
-    setLoading(supabaseLoading)
-  }, [supabaseUser, supabaseLoading])
+  console.log('🔥 USE AUTH HOOK:')
+  console.log('  Has User:', !!user)
+  console.log('  User ID:', user?.id || 'null')
+  console.log('  User Email:', user?.email || 'null')
+  console.log('  Loading:', loading)
 
   const signInWithGoogle = async () => {
-    // 認証成功後はホームページ（ダッシュボード）にリダイレクト
-    const redirectUrl = typeof window !== 'undefined' 
-      ? window.location.origin 
-      : process.env.NEXT_PUBLIC_SITE_URL || ''
+    console.log('🔥 signInWithGoogle called')
+    const redirectUrl = `${window.location.origin}/auth/callback`
+    console.log('🔥 Redirect URL:', redirectUrl)
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -26,10 +22,12 @@ export function useAuth() {
         redirectTo: redirectUrl,
       },
     })
-    
+
     if (error) {
+      console.log('🔥 Google sign in error:', error)
       throw error
     }
+    console.log('🔥 Google sign in initiated successfully')
   }
 
   const signOut = async () => {

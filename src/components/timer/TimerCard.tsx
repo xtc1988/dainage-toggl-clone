@@ -31,8 +31,23 @@ export default function TimerCard() {
   const { projects } = useProjects()
 
   const handleStartTimer = async () => {
-    if (!selectedProjectId) return
-    await startTimer(selectedProjectId, undefined, description)
+    console.log('🔥 handleStartTimer called')
+    console.log('🔥 selectedProjectId:', selectedProjectId)
+    console.log('🔥 user:', user)
+    console.log('🔥 timer object:', timer)
+    
+    if (!selectedProjectId) {
+      console.log('🔥 No project selected, returning')
+      return
+    }
+    
+    try {
+      console.log('🔥 Calling startTimer with:', { projectId: selectedProjectId, description })
+      await startTimer(selectedProjectId, undefined, description)
+      console.log('🔥 startTimer completed')
+    } catch (error) {
+      console.error('🔥 Error starting timer:', error)
+    }
   }
 
   const handleStopTimer = async () => {

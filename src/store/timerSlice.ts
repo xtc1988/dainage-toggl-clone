@@ -40,8 +40,15 @@ export const startTimerAsync = createAsyncThunk(
     taskId?: string
     description?: string
   }) => {
-    const entry = await startTimer(userId, projectId, taskId, description)
-    return entry
+    console.log('🔥 startTimerAsync called with:', { userId, projectId, taskId, description })
+    try {
+      const entry = await startTimer(userId, projectId, taskId, description)
+      console.log('🔥 startTimer returned:', entry)
+      return entry
+    } catch (error) {
+      console.error('🔥 startTimer error:', error)
+      throw error
+    }
   }
 )
 
@@ -98,16 +105,19 @@ const timerSlice = createSlice({
       
       // Start timer
       .addCase(startTimerAsync.pending, (state) => {
+        console.log('🔥 startTimerAsync.pending')
         state.loading = true
         state.error = null
       })
       .addCase(startTimerAsync.fulfilled, (state, action) => {
+        console.log('🔥 startTimerAsync.fulfilled with payload:', action.payload)
         state.loading = false
         state.currentEntry = action.payload
         state.isRunning = true
         state.elapsedTime = 0
       })
       .addCase(startTimerAsync.rejected, (state, action) => {
+        console.error('🔥 startTimerAsync.rejected with error:', action.error)
         state.loading = false
         state.error = action.error.message || 'Failed to start timer'
       })

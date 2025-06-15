@@ -3,40 +3,25 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/lib/supabase/client'
 
 export default function AuthPage() {
-  const { user, loading } = useAuth()
+  const { user, loading, signInWithGoogle } = useAuth()
   const router = useRouter()
   const [isSigningIn, setIsSigningIn] = useState(false)
 
   useEffect(() => {
     if (user) {
-      router.push('/')
+      router.push('/dashboard')
     }
   }, [user, router])
 
   const handleGoogleSignIn = async () => {
     setIsSigningIn(true)
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        }
-      })
-      
-      if (error) {
-        console.error('Error during sign in:', error.message)
-        alert('ログインエラーが発生しました: ' + error.message)
-      }
+      await signInWithGoogle()
     } catch (error) {
-      console.error('Unexpected error during sign in:', error)
-      alert('予期しないエラーが発生しました')
+      console.error('Sign in error:', error)
+      alert('ログインエラーが発生しました')
     } finally {
       setIsSigningIn(false)
     }

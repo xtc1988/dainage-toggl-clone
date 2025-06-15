@@ -1,59 +1,42 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
-import Dashboard from '@/components/Dashboard/Dashboard'
 
 export default function Home() {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const [testMode, setTestMode] = useState(false)
 
-  // Debug logging
-  console.log('Auth state:', { 
-    user: user ? { email: user.email, id: user.id } : null, 
-    loading 
-  })
-
-  // Additional debug - check if session exists in localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const keys = Object.keys(localStorage).filter(key => 
-        key.includes('supabase') || key.includes('auth')
-      )
-      console.log('Auth-related localStorage keys:', keys)
-      
-      if (keys.length > 0) {
-        keys.forEach(key => {
-          console.log(`${key}:`, localStorage.getItem(key))
-        })
-      }
-    }
-  }, [])
+  console.log('🔥 HOME PAGE RENDER:')
+  console.log('  Has User:', !!user)
+  console.log('  User ID:', user?.id || 'null')
+  console.log('  User Email:', user?.email || 'null')
+  console.log('  Loading:', loading)
+  console.log('  Current Path:', typeof window !== 'undefined' ? window.location.pathname : 'server')
 
   if (loading) {
+    console.log('🔥 HomePage: Still loading, showing spinner')
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p className="ml-4 text-gray-600">認証状態を確認中...</p>
       </div>
     )
   }
 
-  if (user || testMode) {
-    console.log(testMode ? 'Test mode, showing dashboard' : 'User logged in, showing dashboard')
-    return <Dashboard />
+  if (user) {
+    console.log('🔥 HomePage: User found, attempting redirect to dashboard')
+    console.log('🔥 Router push called with:', '/dashboard')
+    router.push('/dashboard')
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p className="ml-4 text-gray-600">ダッシュボードにリダイレクト中...</p>
+      </div>
+    )
   }
 
-  console.log('No user, showing landing page')
+  console.log('🔥 HomePage: No user, showing landing page')
 
-  // Temporary: Add a test button to show dashboard without authentication
-  const showTestDashboard = () => {
-    console.log('Showing test dashboard')
-    // Force show dashboard for testing
-    return <Dashboard />
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -70,23 +53,12 @@ export default function Home() {
             次世代の時間追跡システム
           </p>
           
-          <div className="flex justify-center mb-12 gap-4">
+          <div className="flex justify-center mb-12">
             <button
               onClick={() => router.push('/auth')}
               className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-lg"
             >
               Google でログイン
-            </button>
-            
-            {/* Temporary test button */}
-            <button
-              onClick={() => {
-                // Create a fake user for testing
-                setTestMode(true)
-              }}
-              className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors shadow-lg"
-            >
-              テスト用ダッシュボード
             </button>
           </div>
 

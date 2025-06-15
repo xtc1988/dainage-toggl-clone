@@ -2,11 +2,11 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from './client'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import type { User } from '@supabase/supabase-js'
 
 type SupabaseContext = {
-  supabase: typeof supabase
+  supabase: any
   user: User | null
   loading: boolean
 }
@@ -17,60 +17,48 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const supabase = createClientComponentClient()
 
   useEffect(() => {
+    console.log('🔥 SupabaseProvider useEffect started')
+    
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', { event, user: session?.user?.email })
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔥 AUTH STATE CHANGE:')
+      console.log('  Event:', event)
+      console.log('  Has Session:', !!session)
+      console.log('  User ID:', session?.user?.id || 'null')
+      console.log('  User Email:', session?.user?.email || 'null')
+      console.log('  Current Path:', typeof window !== 'undefined' ? window.location.pathname : 'server')
+      
       setUser(session?.user ?? null)
       setLoading(false)
 
-      if (event === 'SIGNED_IN' && session?.user) {
-        // Try to create or update user profile, but don't fail if table doesn't exist
-        try {
-          const { error } = await supabase
-            .from('users')
-            .upsert({
-              id: session.user.id,
-              email: session.user.email!,
-              name: session.user.user_metadata?.name || session.user.email!,
-              avatar_url: session.user.user_metadata?.avatar_url,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            })
-            
-          if (error) {
-            console.warn('Could not update user profile (table may not exist):', error)
-          }
-        } catch (error) {
-          console.warn('User table may not exist yet:', error)
-        }
-        
-        // Redirect to home page (which shows Dashboard for authenticated users)
-        router.push('/')
-      }
+      // Don't redirect here - let page components handle routing
 
       if (event === 'SIGNED_OUT') {
+        console.log('🔥 SIGNED_OUT event - redirecting to home')
         router.push('/')
       }
     })
 
     // Get initial session
-    const getInitialSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        setUser(session?.user ?? null)
-        setLoading(false)
-      } catch (error) {
-        console.error('Error getting initial session:', error)
-        setLoading(false)
-      }
-    }
-    
-    getInitialSession()
+    console.log('🔥 Getting initial session...')
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🔥 INITIAL SESSION RESULT:')
+      console.log('  Has Session:', !!session)
+      console.log('  User ID:', session?.user?.id || 'null')
+      console.log('  User Email:', session?.user?.email || 'null')
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
 
-    return () => subscription.unsubscribe()
-  }, [supabase, router])
+    return () => {
+      console.log('🔥 SupabaseProvider cleanup - unsubscribing')
+      subscription.unsubscribe()
+    }
+  }, [])
 
   return (
     <Context.Provider value={{ supabase, user, loading }}>

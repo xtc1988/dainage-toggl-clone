@@ -25,9 +25,10 @@ export function useTestTimer() {
   }, [isRunning])
 
   const startTimer = (projectId: string, taskId?: string, description?: string) => {
-    console.log('Test timer started for project:', projectId)
+    console.log('🔥 TEST TIMER: startTimer called with:', { projectId, taskId, description })
     setSelectedProject(projectId)
     setIsRunning(true)
+    console.log('🔥 TEST TIMER: Timer started, isRunning:', true)
   }
 
   const stopTimer = () => {

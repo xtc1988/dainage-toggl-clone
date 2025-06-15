@@ -1,17 +1,20 @@
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-// Create a single client instance
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
-  }
-})
+// Create a function to get fresh supabase client
+export const getSupabaseClient = () => {
+  return createClientComponentClient<Database>()
+}
+
+// Use auth helpers client for authentication-aware operations
+export const supabase = getSupabaseClient()
+
+// Fallback client for non-auth operations
+export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
 // Server-side Supabase client with service role key (only for server operations)
 export const supabaseAdmin = createClient<Database>(
@@ -24,6 +27,7 @@ export const supabaseAdmin = createClient<Database>(
     }
   }
 )
+
 
 // Type-safe query helpers
 export const getUserProfile = async (userId: string) => {
@@ -76,7 +80,10 @@ export const getTimeEntries = async (userId: string, limit = 50) => {
 }
 
 export const getActiveTimeEntry = async (userId: string) => {
-  const { data, error } = await supabase
+  const supabaseClient = getSupabaseClient()
+  
+  console.log('🔥 getActiveTimeEntry for user:', userId)
+  const { data, error } = await supabaseClient
     .from('time_entries')
     .select(`
       *,
@@ -87,33 +94,55 @@ export const getActiveTimeEntry = async (userId: string) => {
     .eq('is_running', true)
     .maybeSingle()
     
-  if (error) throw error
+  if (error) {
+    console.error('🔥 Error getting active time entry:', error)
+    throw error
+  }
+  
+  console.log('🔥 Active time entry result:', data)
   return data
 }
 
 export const startTimer = async (userId: string, projectId: string, taskId?: string, description?: string) => {
-  // First, stop any running timers
-  await stopAllRunningTimers(userId)
+  console.log('🔥 startTimer client function called with:', { userId, projectId, taskId, description })
   
-  const { data, error } = await supabase
-    .from('time_entries')
-    .insert({
-      user_id: userId,
-      project_id: projectId,
-      task_id: taskId,
-      description,
-      start_time: new Date().toISOString(),
-      is_running: true
-    })
-    .select(`
-      *,
-      projects(name, color),
-      tasks(name, task_type)
-    `)
-    .single()
+  try {
+    // Get fresh supabase client
+    const supabaseClient = getSupabaseClient()
     
-  if (error) throw error
-  return data
+    // First, stop any running timers
+    console.log('🔥 Stopping all running timers for user:', userId)
+    await stopAllRunningTimers(userId)
+    
+    console.log('🔥 Creating new time entry...')
+    const { data, error } = await supabaseClient
+      .from('time_entries')
+      .insert({
+        user_id: userId,
+        project_id: projectId,
+        task_id: taskId,
+        description,
+        start_time: new Date().toISOString(),
+        is_running: true
+      })
+      .select(`
+        *,
+        projects(name, color),
+        tasks(name, task_type)
+      `)
+      .single()
+      
+    if (error) {
+      console.error('🔥 Error inserting time entry:', error)
+      throw error
+    }
+    
+    console.log('🔥 Successfully created time entry:', data)
+    return data
+  } catch (error) {
+    console.error('🔥 startTimer error:', error)
+    throw error
+  }
 }
 
 export const stopTimer = async (entryId: string) => {
@@ -136,7 +165,10 @@ export const stopTimer = async (entryId: string) => {
 }
 
 export const stopAllRunningTimers = async (userId: string) => {
-  const { error } = await supabase
+  const supabaseClient = getSupabaseClient()
+  
+  console.log('🔥 stopAllRunningTimers for user:', userId)
+  const { error } = await supabaseClient
     .from('time_entries')
     .update({
       end_time: new Date().toISOString(),
@@ -145,7 +177,11 @@ export const stopAllRunningTimers = async (userId: string) => {
     .eq('user_id', userId)
     .eq('is_running', true)
     
-  if (error) throw error
+  if (error) {
+    console.error('🔥 Error stopping running timers:', error)
+    throw error
+  }
+  console.log('🔥 Successfully stopped all running timers')
 }
 
 export const createProject = async (userId: string, projectData: {

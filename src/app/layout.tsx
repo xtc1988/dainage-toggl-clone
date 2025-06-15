@@ -34,7 +34,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+      </head>
       <body className={`${inter.className} antialiased`}>
         <Providers>
           {children}
