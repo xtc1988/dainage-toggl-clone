@@ -128,11 +128,11 @@ export const getActiveTimeEntry = async (userId: string) => {
 }
 
 export const startTimer = async (userId: string, projectId: string, taskId?: string, description?: string) => {
-  timerLogger.info('startTimer client function called', { userId, projectId, taskId, description })
+  timerLogger.info('startTimer client function called (v0.1.1-localstorage)', { userId, projectId, taskId, description })
   
   // デモユーザーの場合はモックタイマーを作成
   if (userId === 'a2e49074-96ff-490e-8e9d-ccac47707f83') {
-    timerLogger.info('Creating mock timer for demo user')
+    timerLogger.info('Creating LOCALSTORAGE mock timer for demo user (not using API)')
     
     // プロジェクト情報を取得
     const projects = await getProjects(userId)
