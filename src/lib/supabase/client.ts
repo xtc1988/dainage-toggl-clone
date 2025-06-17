@@ -91,18 +91,21 @@ export const getActiveTimeEntry = async (userId: string) => {
   
   console.log('🔥 getActiveTimeEntry for user:', userId)
   
-  // デモユーザーの場合はAPIエンドポイントを使用
+  // デモユーザーの場合はLocalStorageからモックタイマーを取得
   if (userId === 'a2e49074-96ff-490e-8e9d-ccac47707f83') {
-    console.log('🎯 Using demo API for active timer')
-    const response = await fetch('/api/demo/timer')
-    const result = await response.json()
+    console.log('🎯 Getting demo mock timer from localStorage')
     
-    if (!result.success) {
-      throw new Error(result.error)
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('demo-active-timer')
+      if (stored) {
+        const mockTimer = JSON.parse(stored)
+        console.log('🔥 Demo active timer found:', mockTimer)
+        return mockTimer
+      }
     }
     
-    console.log('🔥 Demo active time entry result:', result.data)
-    return result.data
+    console.log('🔥 No demo active timer found')
+    return null
   }
   
   const { data, error } = await supabaseClient
@@ -127,35 +130,42 @@ export const getActiveTimeEntry = async (userId: string) => {
 export const startTimer = async (userId: string, projectId: string, taskId?: string, description?: string) => {
   timerLogger.info('startTimer client function called', { userId, projectId, taskId, description })
   
-  // デモユーザーの場合はAPIエンドポイントを使用
+  // デモユーザーの場合はモックタイマーを作成
   if (userId === 'a2e49074-96ff-490e-8e9d-ccac47707f83') {
-    timerLogger.info('Using demo API for start timer')
-    try {
-      const response = await fetch('/api/demo/timer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'start',
-          projectId,
-          description
-        })
-      })
-      
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`)
+    timerLogger.info('Creating mock timer for demo user')
+    
+    // プロジェクト情報を取得
+    const projects = await getProjects(userId)
+    const selectedProject = projects.find(p => p.id === projectId)
+    
+    // モックタイマーエントリを作成
+    const mockTimer = {
+      id: `demo-timer-${Date.now()}`,
+      user_id: userId,
+      project_id: projectId,
+      task_id: taskId || null,
+      description: description || 'Working...',
+      start_time: new Date().toISOString(),
+      end_time: null,
+      duration: 0,
+      is_running: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      projects: {
+        id: projectId,
+        name: selectedProject?.name || 'Demo Project',
+        color: selectedProject?.color || '#3B82F6'
       }
-      
-      const result = await response.json()
-      if (!result.success) {
-        throw new Error(result.error)
-      }
-      
-      timerLogger.info('Demo timer started successfully', result.data)
-      return result.data
-    } catch (error) {
-      timerLogger.error('Demo API failed', error as Error)
-      throw error
     }
+    
+    timerLogger.info('Demo mock timer created', mockTimer)
+    
+    // LocalStorageに保存してブラウザリフレッシュ後も維持
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('demo-active-timer', JSON.stringify(mockTimer))
+    }
+    
+    return mockTimer
   }
   
   try {
@@ -207,22 +217,33 @@ export const startTimer = async (userId: string, projectId: string, taskId?: str
 }
 
 export const stopTimer = async (entryId: string) => {
-  // デモユーザーの場合はAPIエンドポイントを使用（entryIdでデモユーザーかどうか判定は困難なので、別の方法を使用）
-  const response = await fetch('/api/demo/timer', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'stop',
-      timerId: entryId
-    })
-  })
-  
-  if (response.ok) {
-    const result = await response.json()
-    if (result.success) {
-      console.log('🎯 Demo timer stopped via API')
-      return result.data
+  // デモタイマーの場合はLocalStorageから削除
+  if (entryId.startsWith('demo-timer-')) {
+    console.log('🎯 Stopping demo timer:', entryId)
+    
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('demo-active-timer')
+      if (stored) {
+        const mockTimer = JSON.parse(stored)
+        if (mockTimer.id === entryId) {
+          // タイマーを停止状態に更新
+          const stoppedTimer = {
+            ...mockTimer,
+            is_running: false,
+            end_time: new Date().toISOString(),
+            duration: Math.floor((Date.now() - new Date(mockTimer.start_time).getTime()) / 1000)
+          }
+          
+          // LocalStorageから削除
+          localStorage.removeItem('demo-active-timer')
+          
+          console.log('🔥 Demo timer stopped:', stoppedTimer)
+          return stoppedTimer
+        }
+      }
     }
+    
+    throw new Error('Demo timer not found')
   }
   
   // 通常のユーザーの場合
