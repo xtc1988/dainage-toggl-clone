@@ -1,6 +1,7 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
+import { timerLogger } from './logger'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -124,28 +125,37 @@ export const getActiveTimeEntry = async (userId: string) => {
 }
 
 export const startTimer = async (userId: string, projectId: string, taskId?: string, description?: string) => {
-  console.log('🔥 startTimer client function called with:', { userId, projectId, taskId, description })
+  timerLogger.info('startTimer client function called', { userId, projectId, taskId, description })
   
   // デモユーザーの場合はAPIエンドポイントを使用
   if (userId === 'a2e49074-96ff-490e-8e9d-ccac47707f83') {
-    console.log('🎯 Using demo API for start timer')
-    const response = await fetch('/api/demo/timer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'start',
-        projectId,
-        description
+    timerLogger.info('Using demo API for start timer')
+    try {
+      const response = await fetch('/api/demo/timer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'start',
+          projectId,
+          description
+        })
       })
-    })
-    
-    const result = await response.json()
-    if (!result.success) {
-      throw new Error(result.error)
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`)
+      }
+      
+      const result = await response.json()
+      if (!result.success) {
+        throw new Error(result.error)
+      }
+      
+      timerLogger.info('Demo timer started successfully', result.data)
+      return result.data
+    } catch (error) {
+      timerLogger.error('Demo API failed', error as Error)
+      throw error
     }
-    
-    console.log('🔥 Demo timer started:', result.data)
-    return result.data
   }
   
   try {
