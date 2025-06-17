@@ -36,10 +36,13 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <head>
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
       </head>
-      <body className={`${inter.className} antialiased`} data-version="v0.1.1-localstorage-fix">
+      <body className={`${inter.className} antialiased`} data-version="v0.1.4-CACHE-BUSTER-FORCE">
         <Providers>
           {children}
           <LogViewer />
