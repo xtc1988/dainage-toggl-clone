@@ -136,7 +136,7 @@ export const startTimer = async (userId: string, projectId: string, taskId?: str
     
     // プロジェクト情報を取得
     const projects = await getProjects(userId)
-    const selectedProject = projects.find(p => p.id === projectId)
+    const selectedProject = projects.find((p: any) => p.id === projectId)
     
     // モックタイマーエントリを作成
     const mockTimer = {
