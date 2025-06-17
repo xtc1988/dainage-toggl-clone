@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function AuthPage() {
-  const { user, loading, signInWithGoogle } = useAuth()
+  const { user, loading, signInWithGoogle, signInAsDemo } = useAuth()
   const router = useRouter()
   const [isSigningIn, setIsSigningIn] = useState(false)
+  const [isDemoSigningIn, setIsDemoSigningIn] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -66,6 +67,42 @@ export default function AuthPage() {
                 </>
               )}
             </button>
+
+            <div className="my-4 flex items-center">
+              <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
+              <span className="mx-4 text-sm text-gray-500 dark:text-gray-400">または</span>
+              <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
+            </div>
+
+            <button
+              onClick={async () => {
+                setIsDemoSigningIn(true)
+                try {
+                  await signInAsDemo()
+                  router.push('/dashboard')
+                } catch (error) {
+                  console.error('Demo sign in error:', error)
+                  alert('デモログインエラーが発生しました')
+                } finally {
+                  setIsDemoSigningIn(false)
+                }
+              }}
+              disabled={isDemoSigningIn}
+              className="w-full flex items-center justify-center gap-3 px-6 py-3 border-2 border-green-500 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              {isDemoSigningIn ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-700 dark:border-green-300"></div>
+              ) : (
+                <>
+                  <span className="text-lg">🎮</span>
+                  デモ版を試す
+                </>
+              )}
+            </button>
+
+            <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
+              デモ版では実際の機能をお試しいただけます
+            </p>
 
             <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center">

@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import { X, Plus, Palette } from 'lucide-react'
+import { useProjects } from '@/hooks/useProjects'
+import { useAuth } from '@/hooks/useAuth'
+import { timerLogger } from '@/lib/logger'
 
 interface AddProjectModalProps {
   isOpen: boolean
@@ -24,13 +27,16 @@ const defaultColors = [
 ]
 
 export default function AddProjectModal({ isOpen, onClose }: AddProjectModalProps) {
+  const { createProject } = useProjects()
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     color: defaultColors[0]
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!formData.name.trim()) {
@@ -38,16 +44,36 @@ export default function AddProjectModal({ isOpen, onClose }: AddProjectModalProp
       return
     }
 
-    // In a real app, this would call the API to create the project
-    console.log('Creating project:', formData)
-    
-    // Reset form and close modal
-    setFormData({
-      name: '',
-      description: '',
-      color: defaultColors[0]
-    })
-    onClose()
+    if (!user?.id) {
+      alert('ログインが必要です')
+      return
+    }
+
+    setIsSubmitting(true)
+    timerLogger.info('Creating new project', formData)
+
+    try {
+      await createProject({
+        name: formData.name.trim(),
+        color: formData.color,
+        is_archived: false
+      })
+      
+      timerLogger.info('Project created successfully')
+      
+      // Reset form and close modal
+      setFormData({
+        name: '',
+        description: '',
+        color: defaultColors[0]
+      })
+      onClose()
+    } catch (error) {
+      timerLogger.error('Failed to create project', error as Error, formData)
+      alert('プロジェクトの作成に失敗しました。再試行してください。')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (!isOpen) return null
@@ -172,10 +198,11 @@ export default function AddProjectModal({ isOpen, onClose }: AddProjectModalProp
             </button>
             <button
               type="submit"
-              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              disabled={isSubmitting}
+              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors"
             >
               <Plus className="h-4 w-4 mr-2" />
-              作成
+              {isSubmitting ? '作成中...' : '作成'}
             </button>
           </div>
         </form>

@@ -4,15 +4,7 @@ import { useState } from 'react'
 import { X, Plus, ChevronDown } from 'lucide-react'
 import { useProjects } from '@/hooks/useProjects'
 
-interface TimeEntry {
-  id: string
-  project_name: string
-  project_color: string
-  description?: string
-  start_time: string
-  end_time?: string
-  duration: number
-}
+import { TimeEntry } from '@/hooks/useTimeEntries'
 
 interface AddTimeEntryModalProps {
   isOpen: boolean
@@ -43,12 +35,13 @@ export default function AddTimeEntryModal({ isOpen, onClose, onAdd }: AddTimeEnt
     const duration = Math.floor((endDateTime.getTime() - startDateTime.getTime()) / 1000)
 
     const newEntry: Omit<TimeEntry, 'id'> = {
-      project_name: selectedProject.name,
-      project_color: selectedProject.color,
+      user_id: '', // This would be set by the parent component
+      project_id: selectedProject.id,
       description: formData.description,
       start_time: startDateTime.toISOString(),
       end_time: endDateTime.toISOString(),
-      duration: duration
+      duration: duration,
+      is_running: false
     }
 
     onAdd(newEntry)

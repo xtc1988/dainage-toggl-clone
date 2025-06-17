@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { X, Save, Palette } from 'lucide-react'
+import { useProjects } from '@/hooks/useProjects'
+import { timerLogger } from '@/lib/logger'
 
 interface Project {
   id: string
@@ -32,11 +34,13 @@ const defaultColors = [
 ]
 
 export default function EditProjectModal({ project, isOpen, onClose }: EditProjectModalProps) {
+  const { updateProject } = useProjects()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     color: defaultColors[0]
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (project) {
@@ -48,7 +52,7 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
     }
   }, [project])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!formData.name.trim()) {
@@ -56,10 +60,25 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
       return
     }
 
-    // In a real app, this would call the API to update the project
-    console.log('Updating project:', { ...project, ...formData })
-    
-    onClose()
+    if (!project) return
+
+    setIsSubmitting(true)
+    timerLogger.info('Updating project', { projectId: project.id, formData })
+
+    try {
+      await updateProject(project.id, {
+        name: formData.name.trim(),
+        color: formData.color
+      })
+      
+      timerLogger.info('Project updated successfully', { projectId: project.id })
+      onClose()
+    } catch (error) {
+      timerLogger.error('Failed to update project', error as Error, { projectId: project.id, formData })
+      alert('プロジェクトの更新に失敗しました。再試行してください。')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (!isOpen || !project) return null
@@ -182,10 +201,11 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
             </button>
             <button
               type="submit"
-              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              disabled={isSubmitting}
+              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors"
             >
               <Save className="h-4 w-4 mr-2" />
-              保存
+              {isSubmitting ? '保存中...' : '保存'}
             </button>
           </div>
         </form>

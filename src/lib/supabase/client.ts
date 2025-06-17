@@ -48,16 +48,23 @@ export const getCurrentUser = async () => {
 }
 
 export const getProjects = async (userId: string) => {
+  // デモユーザーの場合はAPIエンドポイントを使用
+  if (userId === 'a2e49074-96ff-490e-8e9d-ccac47707f83') {
+    console.log('🎯 Using demo API for projects')
+    const response = await fetch('/api/demo/projects')
+    const result = await response.json()
+    
+    if (!result.success) {
+      throw new Error(result.error)
+    }
+    
+    return result.data
+  }
+  
   const { data, error } = await supabase
     .from('projects')
-    .select(`
-      *,
-      tasks(count),
-      time_entries(count)
-    `)
+    .select('*')
     .eq('user_id', userId)
-    .eq('is_archived', false)
-    .order('created_at', { ascending: false })
     
   if (error) throw error
   return data
@@ -68,8 +75,7 @@ export const getTimeEntries = async (userId: string, limit = 50) => {
     .from('time_entries')
     .select(`
       *,
-      projects(name, color),
-      tasks(name, task_type)
+      projects(name, color)
     `)
     .eq('user_id', userId)
     .order('start_time', { ascending: false })
@@ -83,12 +89,26 @@ export const getActiveTimeEntry = async (userId: string) => {
   const supabaseClient = getSupabaseClient()
   
   console.log('🔥 getActiveTimeEntry for user:', userId)
+  
+  // デモユーザーの場合はAPIエンドポイントを使用
+  if (userId === 'a2e49074-96ff-490e-8e9d-ccac47707f83') {
+    console.log('🎯 Using demo API for active timer')
+    const response = await fetch('/api/demo/timer')
+    const result = await response.json()
+    
+    if (!result.success) {
+      throw new Error(result.error)
+    }
+    
+    console.log('🔥 Demo active time entry result:', result.data)
+    return result.data
+  }
+  
   const { data, error } = await supabaseClient
     .from('time_entries')
     .select(`
       *,
-      projects(name, color),
-      tasks(name, task_type)
+      projects(name, color)
     `)
     .eq('user_id', userId)
     .eq('is_running', true)
@@ -105,6 +125,28 @@ export const getActiveTimeEntry = async (userId: string) => {
 
 export const startTimer = async (userId: string, projectId: string, taskId?: string, description?: string) => {
   console.log('🔥 startTimer client function called with:', { userId, projectId, taskId, description })
+  
+  // デモユーザーの場合はAPIエンドポイントを使用
+  if (userId === 'a2e49074-96ff-490e-8e9d-ccac47707f83') {
+    console.log('🎯 Using demo API for start timer')
+    const response = await fetch('/api/demo/timer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'start',
+        projectId,
+        description
+      })
+    })
+    
+    const result = await response.json()
+    if (!result.success) {
+      throw new Error(result.error)
+    }
+    
+    console.log('🔥 Demo timer started:', result.data)
+    return result.data
+  }
   
   try {
     // Get fresh supabase client
@@ -127,14 +169,23 @@ export const startTimer = async (userId: string, projectId: string, taskId?: str
       })
       .select(`
         *,
-        projects(name, color),
-        tasks(name, task_type)
+        projects(name, color)
       `)
       .single()
       
     if (error) {
       console.error('🔥 Error inserting time entry:', error)
-      throw error
+      console.error('🔥 Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
+      
+      // Enhanced error message
+      const enhancedError = new Error(`Supabase Error: ${error.message} (Code: ${error.code})`)
+      enhancedError.name = 'SupabaseError'
+      throw enhancedError
     }
     
     console.log('🔥 Successfully created time entry:', data)
@@ -146,6 +197,25 @@ export const startTimer = async (userId: string, projectId: string, taskId?: str
 }
 
 export const stopTimer = async (entryId: string) => {
+  // デモユーザーの場合はAPIエンドポイントを使用（entryIdでデモユーザーかどうか判定は困難なので、別の方法を使用）
+  const response = await fetch('/api/demo/timer', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'stop',
+      timerId: entryId
+    })
+  })
+  
+  if (response.ok) {
+    const result = await response.json()
+    if (result.success) {
+      console.log('🎯 Demo timer stopped via API')
+      return result.data
+    }
+  }
+  
+  // 通常のユーザーの場合
   const { data, error } = await supabase
     .from('time_entries')
     .update({
@@ -155,8 +225,7 @@ export const stopTimer = async (entryId: string) => {
     .eq('id', entryId)
     .select(`
       *,
-      projects(name, color),
-      tasks(name, task_type)
+      projects(name, color)
     `)
     .single()
     
@@ -253,7 +322,6 @@ export const getTasks = async (projectId: string) => {
     .from('tasks')
     .select('*')
     .eq('project_id', projectId)
-    .order('created_at', { ascending: false })
     
   if (error) throw error
   return data
@@ -273,8 +341,7 @@ export const updateTimeEntry = async (entryId: string, updates: {
     .eq('id', entryId)
     .select(`
       *,
-      projects(name, color),
-      tasks(name, task_type)
+      projects(name, color)
     `)
     .single()
     
@@ -310,12 +377,9 @@ export const getTeamProjects = async (teamId: string) => {
     .from('projects')
     .select(`
       *,
-      tasks(count),
       time_entries(count)
     `)
     .eq('team_id', teamId)
-    .eq('is_archived', false)
-    .order('created_at', { ascending: false })
     
   if (error) throw error
   return data
@@ -332,8 +396,7 @@ export const getTimeReportData = async (
     .from('time_entries')
     .select(`
       *,
-      projects(name, color),
-      tasks(name, task_type)
+      projects(name, color)
     `)
     .eq('user_id', userId)
     .gte('start_time', startDate)

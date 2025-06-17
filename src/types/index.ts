@@ -11,13 +11,13 @@ export interface User {
 export interface Project {
   id: string
   name: string
-  description?: string
   color: string
   user_id: string
+  description?: string
   team_id?: string
-  is_archived: boolean
-  created_at: string
-  updated_at: string
+  is_archived?: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Task {

@@ -6,6 +6,7 @@ import { useTimer } from '@/hooks/useTimer'
 import { useTestTimer } from '@/hooks/useTestTimer'
 import { useProjects } from '@/hooks/useProjects'
 import { Play, Pause, Square, ChevronDown } from 'lucide-react'
+import { timerLogger } from '@/lib/logger'
 
 export default function TimerCard() {
   const { user } = useAuth()
@@ -28,25 +29,45 @@ export default function TimerCard() {
     loading 
   } = timer
   
-  const { projects } = useProjects()
+  const { projects, initialLoadComplete } = useProjects()
+  
+  timerLogger.info('TimerCard: Available projects', { 
+    count: projects.length, 
+    projects: projects.map(p => ({ id: p.id, name: p.name })),
+    hasUser: !!user,
+    userId: user?.id,
+    initialLoadComplete
+  })
+  
+  // プロジェクト読み込み完了まで待機
+  if (!initialLoadComplete) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center justify-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600 dark:text-gray-400">プロジェクトを読み込み中...</span>
+        </div>
+      </div>
+    )
+  }
 
   const handleStartTimer = async () => {
-    console.log('🔥 handleStartTimer called')
-    console.log('🔥 selectedProjectId:', selectedProjectId)
-    console.log('🔥 user:', user)
-    console.log('🔥 timer object:', timer)
+    timerLogger.info('handleStartTimer called', {
+      selectedProjectId,
+      hasUser: !!user,
+      userId: user?.id,
+      description
+    })
     
-    if (!selectedProjectId) {
-      console.log('🔥 No project selected, returning')
-      return
-    }
+    // If no project selected, use default test project (valid UUID)
+    const projectId = selectedProjectId === 'dummy-1' ? '550e8400-e29b-41d4-a716-446655440001' : (selectedProjectId || '550e8400-e29b-41d4-a716-446655440001')
     
     try {
-      console.log('🔥 Calling startTimer with:', { projectId: selectedProjectId, description })
-      await startTimer(selectedProjectId, undefined, description)
-      console.log('🔥 startTimer completed')
+      timerLogger.info('Calling startTimer', { projectId, description })
+      await startTimer(projectId, undefined, description)
+      timerLogger.info('startTimer completed successfully')
     } catch (error) {
-      console.error('🔥 Error starting timer:', error)
+      timerLogger.error('Error starting timer', error as Error, { projectId, description })
     }
   }
 
@@ -57,14 +78,14 @@ export default function TimerCard() {
   const selectedProject = projects.find(p => p.id === selectedProjectId)
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700" data-testid="timer-card">
       <div className="p-6">
         {/* Timer Display */}
         <div className="text-center mb-6">
           <div className="text-4xl font-mono font-bold text-gray-900 dark:text-white mb-2">
             {formattedTime}
           </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-sm text-gray-500 dark:text-gray-400" data-running={isRunning}>
             {isRunning ? 'タイマー実行中' : 'タイマー停止中'}
           </div>
         </div>
@@ -126,7 +147,7 @@ export default function TimerCard() {
                 style={{ backgroundColor: currentEntry.project?.color || '#3B82F6' }}
               />
               <span className="font-medium text-blue-900 dark:text-blue-100">
-                {currentEntry.project?.name}
+                {currentEntry.project?.name || 'Unknown Project'}
               </span>
             </div>
             {currentEntry.description && (

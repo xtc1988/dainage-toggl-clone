@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { startTimer, stopTimer, getActiveTimeEntry } from '@/lib/supabase/client'
 import type { TimeEntry } from '@/types'
+import { timerLogger } from '@/lib/logger'
 
 interface TimerState {
   currentEntry: TimeEntry | null
@@ -40,13 +41,13 @@ export const startTimerAsync = createAsyncThunk(
     taskId?: string
     description?: string
   }) => {
-    console.log('🔥 startTimerAsync called with:', { userId, projectId, taskId, description })
+    timerLogger.info('startTimerAsync called', { userId, projectId, taskId, description })
     try {
       const entry = await startTimer(userId, projectId, taskId, description)
-      console.log('🔥 startTimer returned:', entry)
+      timerLogger.info('startTimer returned', entry)
       return entry
     } catch (error) {
-      console.error('🔥 startTimer error:', error)
+      timerLogger.error('startTimer failed', error as Error, { userId, projectId, taskId, description })
       throw error
     }
   }
@@ -117,7 +118,11 @@ const timerSlice = createSlice({
         state.elapsedTime = 0
       })
       .addCase(startTimerAsync.rejected, (state, action) => {
-        console.error('🔥 startTimerAsync.rejected with error:', action.error)
+        timerLogger.error('startTimerAsync rejected', new Error(action.error.message || 'Unknown error'), {
+          errorCode: action.error.code,
+          errorName: action.error.name,
+          errorMessage: action.error.message
+        })
         state.loading = false
         state.error = action.error.message || 'Failed to start timer'
       })

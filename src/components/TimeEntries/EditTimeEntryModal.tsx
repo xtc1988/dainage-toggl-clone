@@ -3,15 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Save } from 'lucide-react'
 
-interface TimeEntry {
-  id: string
-  project_name: string
-  project_color: string
-  description?: string
-  start_time: string
-  end_time?: string
-  duration: number
-}
+import { TimeEntry } from '@/hooks/useTimeEntries'
 
 interface EditTimeEntryModalProps {
   entry: TimeEntry | null
@@ -37,7 +29,7 @@ export default function EditTimeEntryModal({ entry, isOpen, onClose, onSave }: E
       const endDate = entry.end_time ? new Date(entry.end_time) : new Date()
       
       setFormData({
-        project_name: entry.project_name,
+        project_name: entry.projects?.name || '',
         description: entry.description || '',
         start_time: entry.start_time,
         end_time: entry.end_time || '',
@@ -62,7 +54,8 @@ export default function EditTimeEntryModal({ entry, isOpen, onClose, onSave }: E
       description: formData.description,
       start_time: startDateTime.toISOString(),
       end_time: endDateTime.toISOString(),
-      duration: duration
+      duration: duration,
+      is_running: false
     }
 
     onSave(updatedEntry)
@@ -97,9 +90,9 @@ export default function EditTimeEntryModal({ entry, isOpen, onClose, onSave }: E
             <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div
                 className="w-4 h-4 rounded-full mr-3"
-                style={{ backgroundColor: entry.project_color }}
+                style={{ backgroundColor: entry.projects?.color || '#3B82F6' }}
               />
-              <span className="text-gray-900 dark:text-white">{entry.project_name}</span>
+              <span className="text-gray-900 dark:text-white">{entry.projects?.name || 'Unknown Project'}</span>
             </div>
           </div>
 

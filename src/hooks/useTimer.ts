@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from '@/store'
 import { updateElapsedTime, fetchActiveTimer, startTimerAsync, stopTimerAsync } from '@/store/timerSlice'
 import { useAuth } from './useAuth'
+import { timerLogger } from '@/lib/logger'
 
 export function useTimer() {
   const dispatch = useDispatch()
@@ -41,16 +42,20 @@ export function useTimer() {
   }, [user?.id, dispatch])
 
   const startTimer = async (projectId: string, taskId?: string, description?: string) => {
-    console.log('🔥 useTimer.startTimer called with:', { projectId, taskId, description, userId: user?.id })
+    timerLogger.info('useTimer.startTimer called', { 
+      projectId, 
+      taskId, 
+      description, 
+      userId: user?.id,
+      hasUser: !!user 
+    })
     
     if (!user?.id) {
-      console.log('🔥 No user ID, using test mode')
-      // Test mode: simulate timer start without user
-      console.log('Test mode: Starting timer for project', projectId)
-      return
+      timerLogger.warn('No user ID, cannot start timer', { projectId })
+      throw new Error('User authentication required to start timer')
     }
     
-    console.log('🔥 Dispatching startTimerAsync...')
+    timerLogger.debug('Dispatching startTimerAsync')
     try {
       const result = await dispatch(
         startTimerAsync({
@@ -60,9 +65,10 @@ export function useTimer() {
           description,
         }) as any
       )
-      console.log('🔥 startTimerAsync result:', result)
+      timerLogger.info('startTimerAsync completed', { result: result?.type })
     } catch (error) {
-      console.error('🔥 startTimerAsync error:', error)
+      timerLogger.error('startTimerAsync failed', error as Error, { projectId, userId: user.id })
+      throw error
     }
   }
 

@@ -9,6 +9,7 @@ type SupabaseContext = {
   supabase: any
   user: User | null
   loading: boolean
+  setDemoUser: (demoUser: User) => void
 }
 
 const Context = createContext<SupabaseContext | undefined>(undefined)
@@ -18,6 +19,13 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const supabase = createClientComponentClient()
+  
+  // デモユーザーを設定する関数
+  const setDemoUser = (demoUser: User) => {
+    console.log('🎯 Setting demo user:', demoUser.email)
+    setUser(demoUser)
+    setLoading(false)
+  }
 
   useEffect(() => {
     console.log('🔥 SupabaseProvider useEffect started')
@@ -61,7 +69,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <Context.Provider value={{ supabase, user, loading }}>
+    <Context.Provider value={{ supabase, user, loading, setDemoUser }}>
       {children}
     </Context.Provider>
   )

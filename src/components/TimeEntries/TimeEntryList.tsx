@@ -1,67 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+import { useState } from 'react'
 import { useTimer } from '@/hooks/useTimer'
+import { useTimeEntries, TimeEntry } from '@/hooks/useTimeEntries'
 import { Clock, Edit, Trash2, Play } from 'lucide-react'
 import EditTimeEntryModal from './EditTimeEntryModal'
 import AddTimeEntryModal from './AddTimeEntryModal'
 
-interface TimeEntry {
-  id: string
-  project_name: string
-  project_color: string
-  description?: string
-  start_time: string
-  end_time?: string
-  duration: number
-}
-
 export default function TimeEntryList() {
-  const { user } = useAuth()
   const { startTimer } = useTimer()
-  const [entries, setEntries] = useState<TimeEntry[]>([])
-  const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const { entries, loading, deleteTimeEntry, updateTimeEntry, getTotalDuration } = useTimeEntries(selectedDate)
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
-
-  // Mock data for testing
-  useEffect(() => {
-    const mockEntries: TimeEntry[] = [
-      {
-        id: '1',
-        project_name: 'サンプルプロジェクト',
-        project_color: '#3B82F6',
-        description: 'UI コンポーネントの実装',
-        start_time: '2024-12-15T09:00:00',
-        end_time: '2024-12-15T11:30:00',
-        duration: 9000 // 2.5時間（秒）
-      },
-      {
-        id: '2',
-        project_name: 'ウェブサイト開発',
-        project_color: '#10B981',
-        description: 'データベース設計',
-        start_time: '2024-12-15T13:00:00',
-        end_time: '2024-12-15T15:45:00',
-        duration: 9900 // 2時間45分（秒）
-      },
-      {
-        id: '3',
-        project_name: 'サンプルプロジェクト',
-        project_color: '#3B82F6',
-        description: 'バグ修正とテスト',
-        start_time: '2024-12-15T16:00:00',
-        end_time: '2024-12-15T17:20:00',
-        duration: 4800 // 1時間20分（秒）
-      }
-    ]
-    
-    setEntries(mockEntries)
-    setLoading(false)
-  }, [selectedDate])
 
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600)
@@ -77,41 +29,36 @@ export default function TimeEntryList() {
     })
   }
 
-  const getTotalDuration = (): string => {
-    const total = entries.reduce((sum, entry) => sum + entry.duration, 0)
-    return formatTime(total)
-  }
-
   const handleEditEntry = (entry: TimeEntry) => {
     setEditingEntry(entry)
     setShowEditModal(true)
   }
 
-  const handleSaveEntry = (updatedEntry: TimeEntry) => {
-    setEntries(entries.map(entry => 
-      entry.id === updatedEntry.id ? updatedEntry : entry
-    ))
+  const handleSaveEntry = async (updatedEntry: TimeEntry) => {
+    try {
+      await updateTimeEntry(updatedEntry.id, updatedEntry)
+    } catch (error) {
+      console.error('Failed to update time entry:', error)
+    }
   }
 
-  const handleDeleteEntry = (entryId: string) => {
+  const handleDeleteEntry = async (entryId: string) => {
     if (confirm('この時間エントリを削除しますか？')) {
-      setEntries(entries.filter(entry => entry.id !== entryId))
+      try {
+        await deleteTimeEntry(entryId)
+      } catch (error) {
+        console.error('Failed to delete time entry:', error)
+      }
     }
   }
 
   const handleContinueEntry = async (entry: TimeEntry) => {
-    // Extract project ID from entry - in a real app this would be stored
-    // For now, we'll use the project name to find the project
-    const projectId = entry.id // Simplified for demo
-    await startTimer(projectId, undefined, entry.description)
+    await startTimer(entry.project_id, undefined, entry.description)
   }
 
   const handleAddEntry = (newEntry: Omit<TimeEntry, 'id'>) => {
-    const entry: TimeEntry = {
-      ...newEntry,
-      id: Date.now().toString() // Simple ID generation for demo
-    }
-    setEntries([...entries, entry])
+    // This would need to be implemented to create in database
+    console.log('Add entry not yet implemented for database', newEntry)
   }
 
   if (loading) {
@@ -144,7 +91,7 @@ export default function TimeEntryList() {
             />
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            合計: <span className="font-mono font-semibold text-lg">{getTotalDuration()}</span>
+            合計: <span className="font-mono font-semibold text-lg">{formatTime(getTotalDuration())}</span>
           </div>
         </div>
 
@@ -163,14 +110,14 @@ export default function TimeEntryList() {
                 {/* Project Color Indicator */}
                 <div
                   className="w-4 h-4 rounded-full mr-4 flex-shrink-0"
-                  style={{ backgroundColor: entry.project_color }}
+                  style={{ backgroundColor: entry.projects?.color || '#3B82F6' }}
                 />
 
                 {/* Entry Details */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2 mb-1">
                     <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                      {entry.project_name}
+                      {entry.projects?.name || 'Unknown Project'}
                     </h3>
                     {entry.description && (
                       <span className="text-sm text-gray-500 dark:text-gray-400 truncate">
@@ -186,7 +133,7 @@ export default function TimeEntryList() {
                 {/* Duration */}
                 <div className="text-right mr-4">
                   <div className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
-                    {formatTime(entry.duration)}
+                    {entry.is_running ? '実行中' : formatTime(entry.duration || 0)}
                   </div>
                 </div>
 

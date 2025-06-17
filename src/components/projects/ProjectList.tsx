@@ -1,16 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useProjects } from '@/hooks/useProjects'
 import { Plus, Edit, Trash2, FolderOpen, Clock } from 'lucide-react'
 import AddProjectModal from './AddProjectModal'
 import EditProjectModal from './EditProjectModal'
+import { timerLogger } from '@/lib/logger'
 
 export default function ProjectList() {
-  const { projects } = useProjects()
+  const { projects, deleteProject } = useProjects()
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingProject, setEditingProject] = useState<any>(null)
+
+  // Log project count changes
+  useEffect(() => {
+    timerLogger.info('ProjectList projects updated', { count: projects.length, projects })
+  }, [projects])
 
   // Mock data for project statistics
   const getProjectStats = (projectId: string) => {
@@ -27,10 +33,16 @@ export default function ProjectList() {
     setShowEditModal(true)
   }
 
-  const handleDelete = (projectId: string) => {
+  const handleDelete = async (projectId: string) => {
     if (confirm('このプロジェクトを削除しますか？関連する時間エントリも削除されます。')) {
-      // In a real app, this would call the delete API
-      console.log('Deleting project:', projectId)
+      try {
+        timerLogger.info('Deleting project', { projectId })
+        await deleteProject(projectId)
+        timerLogger.info('Project deleted successfully', { projectId })
+      } catch (error) {
+        timerLogger.error('Failed to delete project', error as Error, { projectId })
+        alert('プロジェクトの削除に失敗しました')
+      }
     }
   }
 
