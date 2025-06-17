@@ -8,10 +8,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { action, ...data } = body
 
-    // Create Supabase client
+    // Create Supabase admin client to bypass RLS
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
     switch (action) {
@@ -101,7 +101,7 @@ export async function GET() {
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
     // Get current running timer for demo user
