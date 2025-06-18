@@ -39,6 +39,16 @@ export default function TimerCard() {
     initialLoadComplete
   })
   
+  timerLogger.info('TimerCard: Timer state', {
+    isRunning,
+    hasCurrentEntry: !!currentEntry,
+    currentEntryId: currentEntry?.id,
+    currentEntryProjectId: currentEntry?.project_id,
+    currentEntryProjects: currentEntry?.projects,
+    currentEntryProject: currentEntry?.project,
+    loading
+  })
+  
   // プロジェクト読み込み完了まで待機
   if (!initialLoadComplete) {
     return (
@@ -60,8 +70,8 @@ export default function TimerCard() {
       description
     })
     
-    // If no project selected, use default test project (valid UUID)
-    const projectId = selectedProjectId === 'dummy-1' ? '550e8400-e29b-41d4-a716-446655440001' : (selectedProjectId || '550e8400-e29b-41d4-a716-446655440001')
+    // 選択されたプロジェクトIDをそのまま使用
+    const projectId = selectedProjectId
     
     console.log('✅ About to call startTimer with:', { projectId, description })
     
@@ -152,7 +162,29 @@ export default function TimerCard() {
                 style={{ backgroundColor: currentEntry.projects?.color || currentEntry.project?.color || '#3B82F6' }}
               />
               <span className="font-medium text-blue-900 dark:text-blue-100">
-                {currentEntry.projects?.name || currentEntry.project?.name || 'Unknown Project'}
+                {(() => {
+                  const projectName = currentEntry.projects?.name || currentEntry.project?.name || 'Unknown Project'
+                  // Enhanced logging for debugging Unknown Project issue
+                  if (projectName === 'Unknown Project') {
+                    timerLogger.warn('Unknown Project detected', {
+                      currentEntry: {
+                        id: currentEntry.id,
+                        project_id: currentEntry.project_id,
+                        projects: currentEntry.projects,
+                        project: currentEntry.project,
+                        user_id: currentEntry.user_id,
+                        is_running: currentEntry.is_running
+                      }
+                    })
+                  } else {
+                    timerLogger.info('Project name resolved successfully', {
+                      projectName,
+                      hasProjects: !!currentEntry.projects,
+                      hasProject: !!currentEntry.project
+                    })
+                  }
+                  return projectName
+                })()}
               </span>
             </div>
             {currentEntry.description && (

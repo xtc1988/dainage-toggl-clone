@@ -58,6 +58,21 @@ export default function LogViewer() {
         </div>
         <div className="flex gap-1">
           <button
+            onClick={() => {
+              navigator.clipboard.writeText(logs)
+              // Visual feedback
+              const button = document.activeElement as HTMLButtonElement
+              const originalText = button.textContent
+              button.textContent = 'Copied!'
+              setTimeout(() => {
+                button.textContent = originalText
+              }, 1000)
+            }}
+            className="text-xs bg-green-600 px-2 py-1 rounded hover:bg-green-500"
+          >
+            Copy
+          </button>
+          <button
             onClick={refreshLogs}
             className="text-xs bg-blue-600 px-2 py-1 rounded hover:bg-blue-500"
           >

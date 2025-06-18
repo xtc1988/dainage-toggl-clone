@@ -87,6 +87,8 @@ const timerSlice = createSlice({
       })
       .addCase(fetchActiveTimer.fulfilled, (state, action) => {
         console.log('🔥 fetchActiveTimer.fulfilled:', action.payload)
+        console.log('🔥 Project data in payload:', action.payload?.projects)
+        console.log('🔥 Project field in payload:', action.payload?.project)
         state.loading = false
         state.currentEntry = action.payload
         state.isRunning = !!action.payload?.is_running
@@ -113,6 +115,8 @@ const timerSlice = createSlice({
       })
       .addCase(startTimerAsync.fulfilled, (state, action) => {
         console.log('🔥 startTimerAsync.fulfilled with payload:', action.payload)
+        console.log('🔥 Project data in start payload:', action.payload?.projects)
+        console.log('🔥 Project field in start payload:', action.payload?.project)
         state.loading = false
         state.currentEntry = action.payload
         state.isRunning = true
