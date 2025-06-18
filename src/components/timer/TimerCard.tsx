@@ -149,10 +149,10 @@ export default function TimerCard() {
             <div className="flex items-center">
               <div 
                 className="w-3 h-3 rounded-full mr-3"
-                style={{ backgroundColor: currentEntry.project?.color || '#3B82F6' }}
+                style={{ backgroundColor: currentEntry.projects?.color || currentEntry.project?.color || '#3B82F6' }}
               />
               <span className="font-medium text-blue-900 dark:text-blue-100">
-                {currentEntry.project?.name || 'Unknown Project'}
+                {currentEntry.projects?.name || currentEntry.project?.name || 'Unknown Project'}
               </span>
             </div>
             {currentEntry.description && (

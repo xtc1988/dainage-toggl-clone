@@ -86,6 +86,7 @@ const timerSlice = createSlice({
         state.error = null
       })
       .addCase(fetchActiveTimer.fulfilled, (state, action) => {
+        console.log('🔥 fetchActiveTimer.fulfilled:', action.payload)
         state.loading = false
         state.currentEntry = action.payload
         state.isRunning = !!action.payload?.is_running

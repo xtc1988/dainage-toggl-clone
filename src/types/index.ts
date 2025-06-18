@@ -51,6 +51,7 @@ export interface TimeEntry {
   
   // Relations
   project?: Project
+  projects?: Project  // Supabaseのクエリ結果で使用される場合
   task?: Task
 }
 
