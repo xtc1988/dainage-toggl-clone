@@ -52,7 +52,8 @@ export default function TimerCard() {
   }
 
   const handleStartTimer = async () => {
-    timerLogger.info('handleStartTimer called', {
+    console.log('🚀 START BUTTON CLICKED! v0.1.6')
+    timerLogger.info('handleStartTimer called (v0.1.6)', {
       selectedProjectId,
       hasUser: !!user,
       userId: user?.id,
@@ -62,11 +63,15 @@ export default function TimerCard() {
     // If no project selected, use default test project (valid UUID)
     const projectId = selectedProjectId === 'dummy-1' ? '550e8400-e29b-41d4-a716-446655440001' : (selectedProjectId || '550e8400-e29b-41d4-a716-446655440001')
     
+    console.log('✅ About to call startTimer with:', { projectId, description })
+    
     try {
       timerLogger.info('Calling startTimer', { projectId, description })
       await startTimer(projectId, undefined, description)
+      console.log('✅ Timer started successfully!')
       timerLogger.info('startTimer completed successfully')
     } catch (error) {
+      console.error('❌ Timer start failed:', error)
       timerLogger.error('Error starting timer', error as Error, { projectId, description })
     }
   }
