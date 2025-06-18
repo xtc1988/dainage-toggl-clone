@@ -91,21 +91,7 @@ export const getActiveTimeEntry = async (userId: string) => {
   
   console.log('🔥 getActiveTimeEntry for user:', userId)
   
-  // デモユーザーの場合はAPIから取得
-  if (userId === 'a2e49074-96ff-490e-8e9d-ccac47707f83') {
-    console.log('🎯 Getting demo timer from database via API')
-    
-    const response = await fetch('/api/demo/timer?action=get_running')
-    const result = await response.json()
-    
-    if (result.success && result.data) {
-      console.log('🔥 Demo active timer found via API:', result.data)
-      return result.data
-    }
-    
-    console.log('🔥 No demo active timer found')
-    return null
-  }
+  // デモユーザーも通常のクエリで取得（RLSポリシーを更新済み）
   
   const { data, error } = await supabaseClient
     .from('time_entries')
@@ -127,45 +113,10 @@ export const getActiveTimeEntry = async (userId: string) => {
 }
 
 export const startTimer = async (userId: string, projectId: string, taskId?: string, description?: string) => {
-  timerLogger.info('startTimer client function called (v0.2.0-FORCE-UPDATE)', { userId, projectId, taskId, description })
+  timerLogger.info('startTimer client function called (v0.3.0-DIRECT)', { userId, projectId, taskId, description })
   
-  // デモユーザーの場合はAPIエンドポイントを使用（RLSを回避）
-  if (userId === 'a2e49074-96ff-490e-8e9d-ccac47707f83') {
-    timerLogger.info('DEMO USER: Using API endpoint to save to database')
-    
-    const response = await fetch('/api/demo/timer', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'start',
-        projectId,
-        description: description || 'Working...'
-      })
-    })
-    
-    const result = await response.json()
-    
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to start timer')
-    }
-    
-    timerLogger.info('Demo timer started successfully via API', result.data)
-    
-    // プロジェクト情報を追加（API応答に含まれていない場合）
-    if (result.data && !result.data.projects) {
-      const projects = await getProjects(userId)
-      const selectedProject = projects.find((p: any) => p.id === projectId)
-      result.data.projects = {
-        id: projectId,
-        name: selectedProject?.name || 'Demo Project',
-        color: selectedProject?.color || '#3B82F6'
-      }
-    }
-    
-    return result.data
-  }
+  // デモユーザーも通常のフローで処理（RLSポリシーを更新済み）
+  timerLogger.info('Creating timer for user', { userId, projectId })
   
   try {
     // Get fresh supabase client
@@ -216,30 +167,6 @@ export const startTimer = async (userId: string, projectId: string, taskId?: str
 }
 
 export const stopTimer = async (entryId: string) => {
-  // デモユーザーのタイマーの場合（UUIDで判定）
-  if (entryId.length === 36) { // UUID形式
-    console.log('🎯 Stopping demo timer via API:', entryId)
-    
-    const response = await fetch('/api/demo/timer', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'stop',
-        timerId: entryId
-      })
-    })
-    
-    const result = await response.json()
-    
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to stop timer')
-    }
-    
-    console.log('🔥 Timer stopped via API:', result.data)
-    return result.data
-  }
   
   // 通常のユーザーの場合
   const { data, error } = await supabase
