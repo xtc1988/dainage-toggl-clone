@@ -42,7 +42,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
       </head>
-      <body className={`${inter.className} antialiased`} data-version="v0.1.4-CACHE-BUSTER-FORCE">
+      <body className={`${inter.className} antialiased`} data-version="v0.2.0-FINAL">
         <Providers>
           {children}
           <LogViewer />

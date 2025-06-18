@@ -127,7 +127,7 @@ export const getActiveTimeEntry = async (userId: string) => {
 }
 
 export const startTimer = async (userId: string, projectId: string, taskId?: string, description?: string) => {
-  timerLogger.info('startTimer client function called (v0.1.5-DB-ONLY)', { userId, projectId, taskId, description })
+  timerLogger.info('startTimer client function called (v0.2.0-FORCE-UPDATE)', { userId, projectId, taskId, description })
   
   // デモユーザーの場合はAPIエンドポイントを使用（RLSを回避）
   if (userId === 'a2e49074-96ff-490e-8e9d-ccac47707f83') {
