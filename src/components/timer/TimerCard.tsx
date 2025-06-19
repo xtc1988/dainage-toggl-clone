@@ -171,11 +171,11 @@ export default function TimerCard() {
             <div className="flex items-center">
               <div 
                 className="w-3 h-3 rounded-full mr-3"
-                style={{ backgroundColor: currentEntry.projects?.color || currentEntry.project?.color || '#3B82F6' }}
+                style={{ backgroundColor: currentEntry.projects?.color || '#3B82F6' }}
               />
               <span className="font-medium text-blue-900 dark:text-blue-100">
                 {(() => {
-                  const projectName = currentEntry.projects?.name || currentEntry.project?.name || 'Unknown Project'
+                  const projectName = currentEntry.projects?.name || 'Unknown Project'
                   // Enhanced logging for debugging Unknown Project issue
                   if (projectName === 'Unknown Project') {
                     timerLogger.warn('Unknown Project detected', {
@@ -183,16 +183,16 @@ export default function TimerCard() {
                         id: currentEntry.id,
                         project_id: currentEntry.project_id,
                         projects: currentEntry.projects,
-                        project: currentEntry.project,
                         user_id: currentEntry.user_id,
                         is_running: currentEntry.is_running
-                      }
+                      },
+                      raw: JSON.stringify(currentEntry)
                     })
                   } else {
                     timerLogger.info('Project name resolved successfully', {
                       projectName,
                       hasProjects: !!currentEntry.projects,
-                      hasProject: !!currentEntry.project
+                      projectsData: currentEntry.projects
                     })
                   }
                   return projectName

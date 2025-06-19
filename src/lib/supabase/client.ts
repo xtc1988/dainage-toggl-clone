@@ -167,13 +167,28 @@ export const startTimer = async (userId: string, projectId: string, taskId?: str
 }
 
 export const stopTimer = async (entryId: string) => {
+  const supabaseClient = getSupabaseClient()
   
-  // 通常のユーザーの場合
-  const { data, error } = await supabase
+  // First get the current entry to calculate duration
+  const { data: currentEntry, error: fetchError } = await supabaseClient
+    .from('time_entries')
+    .select('start_time')
+    .eq('id', entryId)
+    .single()
+    
+  if (fetchError) throw fetchError
+  
+  const endTime = new Date()
+  const startTime = new Date(currentEntry.start_time)
+  const duration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
+  
+  // Update with end time and duration
+  const { data, error } = await supabaseClient
     .from('time_entries')
     .update({
-      end_time: new Date().toISOString(),
-      is_running: false
+      end_time: endTime.toISOString(),
+      is_running: false,
+      duration: duration
     })
     .eq('id', entryId)
     .select(`
@@ -190,19 +205,39 @@ export const stopAllRunningTimers = async (userId: string) => {
   const supabaseClient = getSupabaseClient()
   
   console.log('🔥 stopAllRunningTimers for user:', userId)
-  const { error } = await supabaseClient
+  
+  // First get all running timers
+  const { data: runningTimers, error: fetchError } = await supabaseClient
     .from('time_entries')
-    .update({
-      end_time: new Date().toISOString(),
-      is_running: false
-    })
+    .select('id, start_time')
     .eq('user_id', userId)
     .eq('is_running', true)
     
-  if (error) {
-    console.error('🔥 Error stopping running timers:', error)
-    throw error
+  if (fetchError) {
+    console.error('🔥 Error fetching running timers:', fetchError)
+    throw fetchError
   }
+  
+  // Update each timer with calculated duration
+  const endTime = new Date()
+  for (const timer of runningTimers || []) {
+    const startTime = new Date(timer.start_time)
+    const duration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
+    
+    const { error } = await supabaseClient
+      .from('time_entries')
+      .update({
+        end_time: endTime.toISOString(),
+        is_running: false,
+        duration: duration
+      })
+      .eq('id', timer.id)
+      
+    if (error) {
+      console.error('🔥 Error stopping timer:', timer.id, error)
+    }
+  }
+  
   console.log('🔥 Successfully stopped all running timers')
 }
 

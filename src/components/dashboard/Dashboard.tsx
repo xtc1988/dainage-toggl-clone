@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useTimer } from '@/hooks/useTimer'
 import { useRouter } from 'next/navigation'
-import TimerCard from '@/components/Timer/TimerCard'
+import TimerCard from '@/components/timer/TimerCard'
 import TimeEntryList from '@/components/TimeEntries/TimeEntryList'
 import NavBar from '@/components/Navigation/NavBar'
 import LogViewer from '@/components/Debug/LogViewer'
+import TimerDebug from '@/components/Debug/TimerDebug'
 import { Clock, Calendar, BarChart3, Users } from 'lucide-react'
 import { timerLogger } from '@/lib/logger'
 
@@ -144,6 +145,9 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
+      
+      {/* Timer Debug Component */}
+      <TimerDebug />
       
       {/* Log Viewer Modal */}
       {showLogs && (

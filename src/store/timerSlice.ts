@@ -139,9 +139,9 @@ const timerSlice = createSlice({
       })
       .addCase(stopTimerAsync.fulfilled, (state, action) => {
         state.loading = false
-        state.currentEntry = action.payload
+        state.currentEntry = null // Clear current entry after stopping
         state.isRunning = false
-        state.elapsedTime = action.payload.duration || state.elapsedTime
+        state.elapsedTime = 0 // Reset elapsed time
       })
       .addCase(stopTimerAsync.rejected, (state, action) => {
         state.loading = false
