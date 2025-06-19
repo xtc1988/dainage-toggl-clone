@@ -133,7 +133,16 @@ export default function TimeEntryList() {
                 {/* Duration */}
                 <div className="text-right mr-4">
                   <div className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
-                    {entry.is_running ? '実行中' : formatTime(entry.duration || 0)}
+                    {entry.is_running ? '実行中' : (() => {
+                      console.log('🔥 ENTRY DURATION DEBUG:', {
+                        id: entry.id,
+                        duration: entry.duration,
+                        start_time: entry.start_time,
+                        end_time: entry.end_time,
+                        is_running: entry.is_running
+                      })
+                      return formatTime(entry.duration || 0)
+                    })()}
                   </div>
                 </div>
 

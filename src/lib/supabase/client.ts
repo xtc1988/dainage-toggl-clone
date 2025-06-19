@@ -182,6 +182,11 @@ export const stopTimer = async (entryId: string) => {
   const startTime = new Date(currentEntry.start_time)
   const duration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
   
+  console.log('🔥 STOP TIMER DURATION CALCULATION:')
+  console.log('  Start time:', currentEntry.start_time)
+  console.log('  End time:', endTime.toISOString())
+  console.log('  Duration (seconds):', duration)
+  
   // Update with end time and duration
   const { data, error } = await supabaseClient
     .from('time_entries')
