@@ -29,12 +29,30 @@ export default function LogViewer() {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed bottom-4 right-4 z-50 flex gap-2">
+        <button
+          onClick={() => {
+            refreshLogs()
+            navigator.clipboard.writeText(logs)
+            // Visual feedback
+            const button = document.activeElement as HTMLButtonElement
+            const originalText = button.textContent
+            button.textContent = '✅ Copied!'
+            button.classList.add('bg-green-600')
+            setTimeout(() => {
+              button.textContent = originalText
+              button.classList.remove('bg-green-600')
+            }, 1500)
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition-all"
+        >
+          📋 Copy Logs
+        </button>
         <button
           onClick={() => setIsOpen(true)}
           className="bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-gray-700"
         >
-          📋 Logs
+          👁️ View
         </button>
       </div>
     )
@@ -63,14 +81,16 @@ export default function LogViewer() {
               // Visual feedback
               const button = document.activeElement as HTMLButtonElement
               const originalText = button.textContent
-              button.textContent = 'Copied!'
+              button.textContent = '✅ Copied!'
+              button.classList.add('bg-green-700')
               setTimeout(() => {
                 button.textContent = originalText
+                button.classList.remove('bg-green-700')
               }, 1000)
             }}
-            className="text-xs bg-green-600 px-2 py-1 rounded hover:bg-green-500"
+            className="text-sm bg-green-600 px-3 py-1 rounded hover:bg-green-500 font-bold transition-all"
           >
-            Copy
+            📋 COPY ALL
           </button>
           <button
             onClick={refreshLogs}
