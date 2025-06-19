@@ -46,8 +46,8 @@ export default function RootLayout({
         <Providers>
           {children}
           <LogViewer />
-          <div className="fixed bottom-4 left-4 bg-gray-900 text-white text-sm px-3 py-2 rounded-md shadow-lg z-[9999]" style={{ pointerEvents: 'none' }}>
-            v0.4.2-VISIBLE
+          <div className="fixed bottom-4 left-4 bg-red-600 text-white text-lg font-bold px-4 py-3 rounded-md shadow-2xl z-[99999]" style={{ pointerEvents: 'none' }}>
+            VERSION: 0.4.3-RED
           </div>
         </Providers>
       </body>
