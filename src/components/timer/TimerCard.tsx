@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useTimer } from '@/hooks/useTimer'
 import { useTestTimer } from '@/hooks/useTestTimer'
 import { useProjects } from '@/hooks/useProjects'
+import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { Play, Pause, Square, ChevronDown } from 'lucide-react'
 import { timerLogger } from '@/lib/logger'
 
@@ -30,6 +31,7 @@ export default function TimerCard() {
   } = timer
   
   const { projects, initialLoadComplete } = useProjects()
+  const { refetch: refetchTimeEntries } = useTimeEntries()
   
   timerLogger.info('TimerCard: Available projects', { 
     count: projects.length, 
@@ -80,6 +82,9 @@ export default function TimerCard() {
       await startTimer(projectId, undefined, description)
       console.log('✅ Timer started successfully!')
       timerLogger.info('startTimer completed successfully')
+      // Refresh time entries list after starting timer
+      await refetchTimeEntries()
+      timerLogger.info('Timer started and time entries refreshed')
     } catch (error) {
       console.error('❌ Timer start failed:', error)
       timerLogger.error('Error starting timer', error as Error, { projectId, description })
@@ -87,7 +92,14 @@ export default function TimerCard() {
   }
 
   const handleStopTimer = async () => {
-    await stopTimer()
+    try {
+      await stopTimer()
+      // Refresh time entries list after stopping timer
+      await refetchTimeEntries()
+      timerLogger.info('Timer stopped and time entries refreshed')
+    } catch (error) {
+      timerLogger.error('Error stopping timer', error as Error)
+    }
   }
 
   const selectedProject = projects.find(p => p.id === selectedProjectId)

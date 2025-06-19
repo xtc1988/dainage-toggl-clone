@@ -145,11 +145,6 @@ export default function Dashboard() {
         </div>
       </main>
       
-      {/* Version Display */}
-      <div className="fixed bottom-4 left-4 bg-gray-800 text-white px-3 py-1 rounded text-xs">
-        v{new Date().toISOString().slice(0, 16)}
-      </div>
-      
       {/* Log Viewer Modal */}
       {showLogs && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">

@@ -46,8 +46,8 @@ export default function RootLayout({
         <Providers>
           {children}
           <LogViewer />
-          <div className="fixed bottom-0 left-0 bg-gray-800 text-white text-xs px-2 py-1 rounded-tr-md opacity-50 hover:opacity-100 transition-opacity">
-            v0.4.0-LOG-COPY
+          <div className="fixed bottom-0 left-0 bg-gray-800 text-white text-xs px-2 py-1 rounded-tr-md opacity-50 hover:opacity-100 transition-opacity z-50 pointer-events-none">
+            v0.4.1-VERSION-FIX
           </div>
         </Providers>
       </body>
